@@ -1,11 +1,21 @@
+require('dotenv').config()
+
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 
 const cors = require('cors')
 
+const UserController = require('./src/user/user.controller')
+const ExerciceController = require('./src/exercice/exercice.controller')
+
 const mongoose = require('mongoose')
-mongoose.connect(process.env.MLAB_URI || 'mongodb://localhost/exercise-track' )
+mongoose.connect(process.env.MONGO_URI, { dbName: 'test', useNewUrlParser: true })
+  .then(() => {console.log('Database OK...')})
+  .catch((err) => {
+    console.log('Database KO...')
+    console.error(err)
+  })
 
 app.use(cors())
 
@@ -17,6 +27,41 @@ app.use(express.static('public'))
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
+
+app.post('/api/exercise/new-user', (req, res) => {
+  let un = req.body.username
+  let controller = new UserController()
+  controller.saveUser(un)
+    .then(u => {
+      console.log(u)
+      res.json(u)
+    })
+    .catch(err => {
+      console.error(err)
+    })
+})
+
+app.get('/api/exercise/users', (req, res) => {
+  let controller = new UserController()
+  controller.findAll()
+    .then(users => {
+      res.json(users)
+    })
+})
+
+app.post('/api/exercise/add', (req, res) => {
+  let controller = new ExerciceController()
+  controller.saveExercice(req.body)
+  res.json({ok: true})
+})
+
+app.get('/api/exercise/exerices', (req, res) => {
+  let controller = new ExerciceController()
+  controller.findAll()
+    .then(exercices => {
+      res.json(exercices)
+    })
+})
 
 
 // Not found middleware
