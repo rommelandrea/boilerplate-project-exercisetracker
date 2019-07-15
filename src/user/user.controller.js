@@ -11,7 +11,7 @@ class UserController {
   }
 
   async findAll() {
-    let users = User.find()
+    let users = User.find().populate({path: 'exercices'});
     return users
   }
 }
